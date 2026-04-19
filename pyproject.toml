@@ -7,11 +7,6 @@ requires-python = ">=3.10"
 license = {text = "MIT"}
 keywords = ["perplexity", "ai", "mcp", "search", "vision", "codex"]
 
-[project.urls]
-Homepage = "https://github.com/minanagehsalalma/proper-perplexity-mcp"
-Repository = "https://github.com/minanagehsalalma/proper-perplexity-mcp"
-Issues = "https://github.com/minanagehsalalma/proper-perplexity-mcp/issues"
-
 dependencies = [
     # MCP (stdio server)
     "mcp>=1.0.0",
@@ -34,6 +29,11 @@ dev = [
 [project.scripts]
 perplexity-mcp = "src.server:main"
 perplexity-server = "perplexity.server.main:main"
+
+[project.urls]
+Homepage = "https://github.com/minanagehsalalma/proper-perplexity-mcp"
+Repository = "https://github.com/minanagehsalalma/proper-perplexity-mcp"
+Issues = "https://github.com/minanagehsalalma/proper-perplexity-mcp/issues"
 
 [build-system]
 requires = ["hatchling"]
