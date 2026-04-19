@@ -1,0 +1,405 @@
+# Importing necessary modules
+# re: Regular expressions for pattern matching
+# sys: System-specific parameters and functions
+# json: JSON parsing and serialization
+# random: Random number generation
+# mimetypes: Guessing MIME types of files
+# uuid: Generating unique identifiers
+# curl_cffi: HTTP requests and multipart form data handling
+import re
+import sys
+import json
+import random
+import mimetypes
+from uuid import uuid4
+
+# Try importing curl_cffi, but allow it to fail for testing environments
+# that mock the requests anyway
+try:
+    from curl_cffi import CurlMime, CurlOpt, requests
+    from curl_cffi.const import CurlIpResolve
+except ImportError:
+    # Minimal stub for testing if curl_cffi is missing
+    class requests:
+        class Session:
+            def __init__(self, *args, **kwargs): pass
+            def get(self, *args, **kwargs): pass
+            def post(self, *args, **kwargs): pass
+
+    class CurlMime:
+        def __init__(self, *args, **kwargs): pass
+        def addpart(self, *args, **kwargs): pass
+
+    CurlOpt = None
+    CurlIpResolve = None
+
+from .config import (
+    DEFAULT_HEADERS,
+    ENDPOINT_AUTH_SESSION,
+    ENDPOINT_RATE_LIMIT,
+    ENDPOINT_RATE_LIMIT_STATUS,
+    ENDPOINT_SSE_ASK,
+    ENDPOINT_UPLOAD_URL,
+    MODEL_MAPPINGS,
+    PPLX_IP_RESOLVE,
+    SOCKS_PROXY,
+    get_model_preference,
+    get_public_model_choices,
+    normalize_model_name,
+)
+from .exceptions import ValidationError
+
+
+def _build_session_curl_options() -> dict | None:
+    """Return curl options for the current network policy."""
+    if CurlOpt is None or CurlIpResolve is None:
+        return None
+
+    if PPLX_IP_RESOLVE == "ipv4":
+        return {CurlOpt.IPRESOLVE: CurlIpResolve.V4}
+    if PPLX_IP_RESOLVE == "ipv6":
+        return {CurlOpt.IPRESOLVE: CurlIpResolve.V6}
+    return None
+
+
+class Client:
+    """
+    A client for interacting with the Perplexity AI API.
+    """
+
+    def __init__(self, cookies=None):
+        # Build proxy configuration from SOCKS_PROXY env var
+        # Format: socks5://[user[:pass]@]host[:port][#remark]
+        proxy_url = None
+        if SOCKS_PROXY:
+            # Remove the remark part (after #) if present
+            proxy_url = SOCKS_PROXY.split("#")[0] if "#" in SOCKS_PROXY else SOCKS_PROXY
+
+        if cookies is None:
+            cookies = {}
+
+        # Store original cookies for export
+        self._cookies = cookies.copy()
+
+        session_kwargs = {
+            "headers": DEFAULT_HEADERS.copy(),
+            "cookies": cookies,
+            "impersonate": "chrome",
+            "proxy": proxy_url,
+        }
+        if curl_options := _build_session_curl_options():
+            session_kwargs["curl_options"] = curl_options
+
+        # Initialize an HTTP session with default headers and optional cookies
+        self.session = requests.Session(**session_kwargs)
+
+        # Flags and counters for account and query management
+        self.own = bool(cookies)  # Indicates if the client uses its own account
+        self.copilot = 0 if not cookies else float("inf")  # Remaining pro queries
+        self.file_upload = 0 if not cookies else float("inf")  # Remaining file uploads
+
+        # Unique timestamp for session identification
+        self.timestamp = format(random.getrandbits(32), "08x")
+
+        # Initialize session by making a GET request
+        self.session.get(ENDPOINT_AUTH_SESSION, timeout=30)
+
+    @property
+    def cookies(self) -> dict:
+        """
+        Get the current cookies from the session.
+        """
+        if hasattr(self.session, "cookies") and hasattr(self.session.cookies, "get_dict"):
+            return self.session.cookies.get_dict()
+        return self._cookies
+
+    def get_user_info(self) -> dict:
+        """
+        Get user session information from the auth session endpoint.
+
+        Returns:
+            dict: User session info including user details if logged in,
+                  or empty dict if anonymous/not logged in.
+        """
+        try:
+            resp = self.session.get(ENDPOINT_AUTH_SESSION, timeout=30)
+            if resp.ok:
+                return resp.json()
+            return {}
+        except Exception:
+            return {}
+
+    def get_rate_limits(self) -> dict:
+        """
+        Fetch real quota info from Perplexity rate-limit APIs.
+
+        Returns:
+            dict with pro_remaining and per-mode quota details:
+            {
+                "pro_remaining": 600,
+                "modes": {
+                    "pro_search": {"available": True, "remaining": None, "kind": "not_provided"},
+                    "research": {"available": True, "remaining": 1, "kind": "exact"},
+                    ...
+                }
+            }
+        """
+        result = {}
+
+        try:
+            resp = self.session.get(
+                ENDPOINT_RATE_LIMIT,
+                params={"version": "2.18", "source": "default"},
+                timeout=15,
+            )
+            if resp.ok:
+                result["pro_remaining"] = resp.json().get("remaining")
+        except Exception:
+            pass
+
+        try:
+            resp2 = self.session.get(
+                ENDPOINT_RATE_LIMIT_STATUS,
+                params={"version": "2.18", "source": "default"},
+                timeout=15,
+            )
+            if resp2.ok:
+                data = resp2.json()
+                modes = data.get("modes", {})
+                result["modes"] = {}
+                for mode_name, mode_data in modes.items():
+                    result["modes"][mode_name] = {
+                        "available": mode_data.get("available", False),
+                        "remaining": mode_data.get("remaining_detail", {}).get("remaining"),
+                        "kind": mode_data.get("remaining_detail", {}).get("kind"),
+                    }
+        except Exception:
+            pass
+
+        return result
+
+    def _validate_research_response(self, response: dict) -> None:
+        """Verify the response is actually a deep research result, not a silent downgrade."""
+        text = response.get("text")
+        if isinstance(text, str) or text is None:
+            raise Exception(
+                "Deep research was silently downgraded to a regular search by the server. "
+                "This account may not have research quota remaining."
+            )
+
+    def search(
+        self,
+        query,
+        mode="auto",
+        model=None,
+        sources=None,
+        files=None,
+        stream=False,
+        language="en-US",
+        follow_up=None,
+        incognito=False,
+    ):
+        """
+        Executes a search query on Perplexity AI.
+
+        Parameters:
+        - query: The search query string.
+        - mode: Search mode ('auto', 'pro', 'reasoning', 'deep research').
+        - model: Specific model to use for the query.
+        - sources: List of sources ('web', 'scholar', 'social').
+        - files: Dictionary of files to upload.
+        - stream: Whether to stream the response.
+        - language: Language code (ISO 639).
+        - follow_up: Information for follow-up queries.
+        - incognito: Whether to enable incognito mode.
+        """
+        if sources is None:
+            sources = ["web"]
+        if files is None:
+            files = {}
+
+        # Validate input parameters
+        valid_modes = tuple(MODEL_MAPPINGS)
+        if mode not in valid_modes:
+            raise ValidationError(f"Invalid search mode '{mode}'. Choose from: {', '.join(valid_modes)}")
+
+        selected_model = normalize_model_name(mode, model)
+        if self.own and model is not None and selected_model is None:
+            valid_models = get_public_model_choices(mode)
+            valid_models_hint = (
+                ", ".join(valid_models) if valid_models else "leave model unset for this mode"
+            )
+            raise ValidationError(
+                f"Invalid model '{model}' for mode '{mode}'. Valid models: {valid_models_hint}"
+            )
+
+        if not all(source in ("web", "scholar", "social") for source in sources):
+            raise ValidationError("Invalid sources. Choose from: web, scholar, social")
+
+        if mode in ("pro", "reasoning", "deep research") and self.copilot <= 0:
+            raise ValidationError("No remaining pro queries.")
+
+        if files and self.file_upload - len(files) < 0:
+            raise ValidationError("File upload limit exceeded.")
+
+        if model is not None and not self.own:
+            raise ValidationError(
+                "Model selection requires an account with cookies. "
+                "Initialize Client with cookies parameter."
+            )
+
+        # Update query and file upload counters
+        self.copilot = (
+            self.copilot - 1 if mode in ["pro", "reasoning", "deep research"] else self.copilot
+        )
+        self.file_upload = self.file_upload - len(files) if files else self.file_upload
+
+        # Upload files and prepare the query payload
+        uploaded_files = []
+        for filename, file in files.items():
+            file_type = mimetypes.guess_type(filename)[0]
+            file_upload_info = (
+                self.session.post(
+                    ENDPOINT_UPLOAD_URL,
+                    params={"version": "2.18", "source": "default"},
+                    json={
+                        "content_type": file_type,
+                        "file_size": sys.getsizeof(file),
+                        "filename": filename,
+                        "force_image": False,
+                        "source": "default",
+                    },
+                    timeout=30,
+                )
+            ).json()
+
+            # Upload the file to the server
+            mp = CurlMime()
+            for key, value in file_upload_info["fields"].items():
+                mp.addpart(name=key, data=value)
+            mp.addpart(
+                name="file",
+                content_type=file_type,
+                filename=filename,
+                data=file,
+            )
+
+            upload_resp = self.session.post(file_upload_info["s3_bucket_url"], multipart=mp, timeout=120)
+
+            if not upload_resp.ok:
+                raise Exception("File upload error", upload_resp)
+
+            # Extract the uploaded file URL
+            if "image/upload" in file_upload_info["s3_object_url"]:
+                uploaded_url = re.sub(
+                    r"/private/s--.*?--/v\\d+/user_uploads/",
+                    "/private/user_uploads/",
+                    upload_resp.json()["secure_url"],
+                )
+            else:
+                uploaded_url = file_upload_info["s3_object_url"]
+
+            uploaded_files.append(uploaded_url)
+
+        # Prepare the JSON payload for the query
+        json_data = {
+            "query_str": query,
+            "params": {
+                "attachments": (
+                    uploaded_files + follow_up["attachments"] if follow_up else uploaded_files
+                ),
+                "frontend_context_uuid": str(uuid4()),
+                "frontend_uuid": str(uuid4()),
+                "is_incognito": incognito,
+                "language": language,
+                "last_backend_uuid": (follow_up["backend_uuid"] if follow_up else None),
+                "mode": "concise" if mode == "auto" else "copilot",
+                "model_preference": get_model_preference(mode, selected_model),
+                "source": "default",
+                "sources": sources,
+                "version": "2.18",
+            },
+        }
+
+        # Send the query request and handle the response
+        resp = self.session.post(ENDPOINT_SSE_ASK, json=json_data, stream=True, timeout=120)
+        chunks = []
+
+        def stream_response(resp):
+            """
+            Generator for streaming responses.
+            """
+            for chunk in resp.iter_lines(delimiter=b"\r\n\r\n"):
+                content = chunk.decode("utf-8")
+
+                if content.startswith("event: message\r\n"):
+                    try:
+                        content_json = json.loads(content[len("event: message\r\ndata: ") :])
+
+                        # Parse the nested 'text' field if it exists
+                        if "text" in content_json and content_json["text"]:
+                            try:
+                                text_parsed = json.loads(content_json["text"])
+                                # Extract answer from FINAL step if available
+                                if isinstance(text_parsed, list):
+                                    for step in text_parsed:
+                                        if step.get("step_type") == "FINAL":
+                                            final_content = step.get("content", {})
+                                            if "answer" in final_content:
+                                                answer_data = json.loads(final_content["answer"])
+                                                content_json["answer"] = answer_data.get(
+                                                    "answer", ""
+                                                )
+                                                content_json["chunks"] = answer_data.get(
+                                                    "chunks", []
+                                                )
+                                                break
+                                content_json["text"] = text_parsed
+                            except (json.JSONDecodeError, TypeError, KeyError):
+                                pass
+
+                        chunks.append(content_json)
+                        yield chunks[-1]
+                    except (json.JSONDecodeError, KeyError):
+                        continue
+
+                elif content.startswith("event: end_of_stream\r\n"):
+                    return
+
+        if stream:
+            return stream_response(resp)
+
+        for chunk in resp.iter_lines(delimiter=b"\r\n\r\n"):
+            content = chunk.decode("utf-8")
+
+            if content.startswith("event: message\r\n"):
+                try:
+                    content_json = json.loads(content[len("event: message\r\ndata: ") :])
+
+                    # Parse the nested 'text' field if it exists
+                    if "text" in content_json and content_json["text"]:
+                        try:
+                            text_parsed = json.loads(content_json["text"])
+                            # Extract answer from FINAL step if available
+                            if isinstance(text_parsed, list):
+                                for step in text_parsed:
+                                    if step.get("step_type") == "FINAL":
+                                        final_content = step.get("content", {})
+                                        if "answer" in final_content:
+                                            answer_data = json.loads(final_content["answer"])
+                                            content_json["answer"] = answer_data.get("answer", "")
+                                            content_json["chunks"] = answer_data.get("chunks", [])
+                                            break
+                            content_json["text"] = text_parsed
+                        except (json.JSONDecodeError, TypeError, KeyError):
+                            pass
+
+                    chunks.append(content_json)
+                except (json.JSONDecodeError, KeyError):
+                    continue
+
+            elif content.startswith("event: end_of_stream\r\n"):
+                result = chunks[-1] if chunks else {}
+                if mode == "deep research" and result:
+                    self._validate_research_response(result)
+                return result
