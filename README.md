@@ -3,7 +3,7 @@
 <!-- Hero -->
 <br />
 
-<img src="docs/images/logo.svg" alt="Logo" width="160" />
+<img src="docs/images/logo.png" alt="Logo" width="160" />
 
 <br />
 
