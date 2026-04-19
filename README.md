@@ -124,8 +124,8 @@ This repository is a hardened, more host-friendly fork of [`teoobarca/perplexity
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/teoobarca/perplexity-mcp.git
-cd perplexity-mcp
+git clone https://github.com/minanagehsalalma/proper-perplexity-mcp.git
+cd proper-perplexity-mcp
 uv sync
 ```
 
@@ -135,7 +135,7 @@ uv sync
 <summary><b>🟣 Claude Code</b></summary>
 
 ```bash
-claude mcp add perplexity -s user -- uv --directory /path/to/perplexity-mcp run perplexity-mcp
+claude mcp add perplexity -s user -- uv --directory /path/to/proper-perplexity-mcp run perplexity-mcp
 ```
 </details>
 
@@ -147,7 +147,7 @@ Go to **Settings → MCP → Add new server** and paste:
 ```json
 {
   "command": "uv",
-  "args": ["--directory", "/path/to/perplexity-mcp", "run", "perplexity-mcp"]
+  "args": ["--directory", "/path/to/proper-perplexity-mcp", "run", "perplexity-mcp"]
 }
 ```
 </details>
@@ -162,7 +162,7 @@ Add to your MCP config file:
   "mcpServers": {
     "perplexity": {
       "command": "uv",
-      "args": ["--directory", "/path/to/perplexity-mcp", "run", "perplexity-mcp"]
+      "args": ["--directory", "/path/to/proper-perplexity-mcp", "run", "perplexity-mcp"]
     }
   }
 }
@@ -453,7 +453,7 @@ When a Pro request fails, the server tries progressively:
 # Install in development mode
 uv pip install -e ".[dev]" --python .venv/bin/python
 
-# Run unit tests (66 tests)
+# Run unit tests (82 tests)
 .venv/bin/python -m pytest tests/ -v
 
 # Frontend development
@@ -483,7 +483,7 @@ perplexity/                   # Backend engine
     main.py                   #   HTTP server entry point
     web/                      #   React admin frontend (Vite + Tailwind)
 
-tests/                        # 66 unit tests
+tests/                        # 82 tests, including stdio integration coverage
 ```
 
 ---

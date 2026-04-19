@@ -1,11 +1,16 @@
 [project]
-name = "perplexity-mcp"
+name = "proper-perplexity-mcp"
 version = "0.4.0"
-description = "Free Perplexity AI for your coding assistant. No API keys, no subscription."
+description = "Hardened Perplexity MCP server with token pooling, image uploads, structured output, and an admin dashboard."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
-keywords = ["perplexity", "ai", "mcp", "search"]
+keywords = ["perplexity", "ai", "mcp", "search", "vision", "codex"]
+
+[project.urls]
+Homepage = "https://github.com/minanagehsalalma/proper-perplexity-mcp"
+Repository = "https://github.com/minanagehsalalma/proper-perplexity-mcp"
+Issues = "https://github.com/minanagehsalalma/proper-perplexity-mcp/issues"
 
 dependencies = [
     # MCP (stdio server)
