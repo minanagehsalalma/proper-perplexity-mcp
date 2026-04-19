@@ -84,6 +84,70 @@ This repository is a hardened, more host-friendly fork of [`teoobarca/perplexity
 </tr>
 </table>
 
+## 📊 Benchmark: Proper vs Upstream
+
+Verified against [`teoobarca/perplexity-mcp`](https://github.com/teoobarca/perplexity-mcp) HEAD `ec19ac9` on `2026-04-19`. Feature rows were checked from the MCP source/tests; the frontend security row is from `npm audit` against each frontend lockfile.
+
+<table>
+<tr>
+<th align="left">Capability</th>
+<th align="left">Upstream <code>teoobarca/perplexity-mcp</code></th>
+<th align="left">This repo <code>proper-perplexity-mcp</code></th>
+</tr>
+<tr>
+<td><b>MCP image uploads</b></td>
+<td><img src="https://img.shields.io/badge/NO-Text_only-ef4444?style=flat-square&labelColor=111827" alt="No: text only" /></td>
+<td><img src="https://img.shields.io/badge/YES-Path_%2B_base64_uploads-22c55e?style=flat-square&labelColor=111827" alt="Yes: path and base64 uploads" /></td>
+</tr>
+<tr>
+<td><b>Structured agent output</b></td>
+<td><img src="https://img.shields.io/badge/NO-Markdown_only-ef4444?style=flat-square&labelColor=111827" alt="No: markdown only" /></td>
+<td><img src="https://img.shields.io/badge/YES-JSON_%2B_structuredContent-22c55e?style=flat-square&labelColor=111827" alt="Yes: JSON and structuredContent" /></td>
+</tr>
+<tr>
+<td><b>MCP resources and prompts</b></td>
+<td><img src="https://img.shields.io/badge/NO-Tools_only-f97316?style=flat-square&labelColor=111827" alt="No: tools only" /></td>
+<td><img src="https://img.shields.io/badge/YES-Discoverable_guides_%2B_prompts-22c55e?style=flat-square&labelColor=111827" alt="Yes: discoverable guides and prompts" /></td>
+</tr>
+<tr>
+<td><b>Upload safety</b></td>
+<td><img src="https://img.shields.io/badge/N%2FA-No_upload_path-64748b?style=flat-square&labelColor=111827" alt="Not applicable: no upload path" /></td>
+<td><img src="https://img.shields.io/badge/YES-Count_size_MIME_limits-22c55e?style=flat-square&labelColor=111827" alt="Yes: count, size, and MIME limits" /></td>
+</tr>
+<tr>
+<td><b>Transport-level MCP tests</b></td>
+<td><img src="https://img.shields.io/badge/NO-Direct_tests_only-ef4444?style=flat-square&labelColor=111827" alt="No: direct tests only" /></td>
+<td><img src="https://img.shields.io/badge/YES-Real_stdio_client_test-22c55e?style=flat-square&labelColor=111827" alt="Yes: real stdio client test" /></td>
+</tr>
+<tr>
+<td><b>Test coverage count</b></td>
+<td><img src="https://img.shields.io/badge/53-tests-f59e0b?style=flat-square&labelColor=111827" alt="53 tests" /></td>
+<td><img src="https://img.shields.io/badge/82-tests-22c55e?style=flat-square&labelColor=111827" alt="82 tests" /></td>
+</tr>
+<tr>
+<td><b>One-command visual smoke test</b></td>
+<td><img src="https://img.shields.io/badge/NO-Manual_probe-ef4444?style=flat-square&labelColor=111827" alt="No: manual probe" /></td>
+<td><img src="https://img.shields.io/badge/YES-stdio_image_smoke_script-22c55e?style=flat-square&labelColor=111827" alt="Yes: stdio image smoke script" /></td>
+</tr>
+<tr>
+<td><b>Codex/Cursor agent ergonomics</b></td>
+<td><img src="https://img.shields.io/badge/BASIC-Generic_tool_docs-f59e0b?style=flat-square&labelColor=111827" alt="Basic: generic tool docs" /></td>
+<td><img src="https://img.shields.io/badge/STRONG-AGENTS_playbook_%2B_examples-22c55e?style=flat-square&labelColor=111827" alt="Strong: AGENTS playbook and examples" /></td>
+</tr>
+<tr>
+<td><b>Frontend dependency audit</b></td>
+<td><img src="https://img.shields.io/badge/17_findings-1_critical-ef4444?style=flat-square&labelColor=111827" alt="17 findings, 1 critical" /></td>
+<td><img src="https://img.shields.io/badge/PASS-0_vulnerabilities-22c55e?style=flat-square&labelColor=111827" alt="Pass: zero vulnerabilities" /></td>
+</tr>
+<tr>
+<td><b>Public repo hygiene</b></td>
+<td><img src="https://img.shields.io/badge/BASIC-Boilerplate_metadata-f59e0b?style=flat-square&labelColor=111827" alt="Basic: boilerplate metadata" /></td>
+<td><img src="https://img.shields.io/badge/CLEAN-Examples_CI_security_docs-22c55e?style=flat-square&labelColor=111827" alt="Clean: examples, CI, and security docs" /></td>
+</tr>
+</table>
+
+**Bottom line:** upstream is a useful Perplexity MCP base; this fork is the agent-ready version with vision uploads, structured outputs, discoverable MCP context, stronger tests, safer packaging, and a verified CI path.
+
 ---
 
 ## ✨ Features
