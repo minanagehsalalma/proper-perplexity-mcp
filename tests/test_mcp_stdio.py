@@ -2,6 +2,7 @@
 
 import json
 import os
+import sys
 from pathlib import Path
 
 import pytest
@@ -12,7 +13,6 @@ from mcp.client.stdio import StdioServerParameters, stdio_client
 @pytest.mark.asyncio
 async def test_stdio_transport_exposes_tools_resources_prompts_and_structured_results(tmp_path) -> None:
     repo_root = Path(__file__).resolve().parents[1]
-    python_path = repo_root / ".venv" / "Scripts" / "python.exe"
     image_path = tmp_path / "shot.png"
     image_path.write_bytes(b"fake-image")
 
@@ -27,7 +27,7 @@ async def test_stdio_transport_exposes_tools_resources_prompts_and_structured_re
     }
 
     server_parameters = StdioServerParameters(
-        command=str(python_path),
+        command=sys.executable,
         args=["-m", "src.server"],
         cwd=str(repo_root),
         env={
