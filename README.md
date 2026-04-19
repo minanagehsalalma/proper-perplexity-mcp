@@ -41,112 +41,83 @@ Most Perplexity MCP servers are single-account wrappers around the paid Sonar AP
 - 🛡️ **Downgrade protection** — detects when Perplexity silently returns a regular result instead of deep research
 - 📱 **Telegram alerts** — get notified when tokens expire or quota runs out
 
-## ✅ What This Fork Fixes
+<a id="-what-this-fork-fixes"></a>
+<a id="-benchmark-proper-vs-upstream"></a>
 
-This repository is a hardened, more host-friendly fork of [`teoobarca/perplexity-mcp`](https://github.com/teoobarca/perplexity-mcp), compared against upstream commit `ec19ac9` from `2026-02-14`.
+## ✅ What This Fork Fixes & Benchmark
 
-<table>
-<tr>
-<td width="170"><img src="https://img.shields.io/badge/NEW-Vision_Uploads-06b6d4?style=for-the-badge&labelColor=0f172a" alt="New: Vision uploads" /></td>
-<td><b>Image uploads now work through MCP properly.</b><br />Both tools accept <code>attachments</code> using local file paths or inline base64/data URLs.</td>
-</tr>
-<tr>
-<td><img src="https://img.shields.io/badge/NEW-Structured_Output-22c55e?style=for-the-badge&labelColor=0f172a" alt="New: Structured output" /></td>
-<td><b>Structured MCP output is available.</b><br /><code>response_format: "json"</code> returns validated <code>structuredContent</code> for agents and automation.</td>
-</tr>
-<tr>
-<td><img src="https://img.shields.io/badge/SAFE-Upload_Guardrails-f97316?style=for-the-badge&labelColor=0f172a" alt="Safe: Upload guardrails" /></td>
-<td><b>Attachment handling is safer.</b><br />Count limits, per-file size limits, total size limits, and MIME-type validation stop bad uploads early.</td>
-</tr>
-<tr>
-<td><img src="https://img.shields.io/badge/AGENT-MCP_Resources-8b5cf6?style=for-the-badge&labelColor=0f172a" alt="Agent: MCP resources" /></td>
-<td><b>Hosts get more than tools.</b><br />MCP resources and prompts expose models, defaults, attachment guidance, and better prompt templates.</td>
-</tr>
-<tr>
-<td><img src="https://img.shields.io/badge/UX-Progress_Phases-14b8a6?style=for-the-badge&labelColor=0f172a" alt="UX: Progress phases" /></td>
-<td><b>Progress is clearer.</b><br />Request lifecycle updates now distinguish validation, pool sync, dispatch, and formatting phases.</td>
-</tr>
-<tr>
-<td><img src="https://img.shields.io/badge/TESTED-Real_stdio_Coverage-3b82f6?style=for-the-badge&labelColor=0f172a" alt="Tested: Real stdio coverage" /></td>
-<td><b>Real transport tests exist.</b><br />The repo includes stdio integration coverage instead of only direct function tests.</td>
-</tr>
-<tr>
-<td><img src="https://img.shields.io/badge/VERIFY-Smoke_Test-f59e0b?style=for-the-badge&labelColor=0f172a" alt="Verify: Smoke test" /></td>
-<td><b>Live smoke testing is one command.</b><br />Image upload verification is scripted through the real stdio MCP path.</td>
-</tr>
-<tr>
-<td><img src="https://img.shields.io/badge/CODEX-Agent_Ready-ec4899?style=for-the-badge&labelColor=0f172a" alt="Codex: Agent ready" /></td>
-<td><b>Codex guidance is first-class.</b><br />Repo instructions teach agents how to batch research, use visual attachments, and request structured results.</td>
-</tr>
-<tr>
-<td><img src="https://img.shields.io/badge/CLEAN-Public_Packaging-64748b?style=for-the-badge&labelColor=0f172a" alt="Clean: Public packaging" /></td>
-<td><b>Public packaging is cleaner.</b><br />Example token config restored, secrets/logs/cache artifacts removed from the publishable tree.</td>
-</tr>
-</table>
-
-## 📊 Benchmark: Proper vs Upstream
-
-Verified against [`teoobarca/perplexity-mcp`](https://github.com/teoobarca/perplexity-mcp) HEAD `ec19ac9` on `2026-04-19`. Feature rows were checked from the MCP source/tests; the frontend security row is from `npm audit` against each frontend lockfile.
+This is a hardened, agent-ready fork of [`teoobarca/perplexity-mcp`](https://github.com/teoobarca/perplexity-mcp). Verified against upstream HEAD `ec19ac9` on `2026-04-19`; feature rows were checked from MCP source/tests, and the security row is from `npm audit` against each frontend lockfile.
 
 <table>
 <tr>
-<th align="left">Capability</th>
-<th align="left">Upstream <code>teoobarca/perplexity-mcp</code></th>
-<th align="left">This repo <code>proper-perplexity-mcp</code></th>
+<th align="left">Area</th>
+<th align="left">Upstream</th>
+<th align="left">Proper Perplexity MCP</th>
+<th align="left">What changed</th>
 </tr>
 <tr>
-<td><b>MCP image uploads</b></td>
+<td><b>Vision uploads</b></td>
 <td><img src="https://img.shields.io/badge/NO-Text_only-ef4444?style=flat-square&labelColor=111827" alt="No: text only" /></td>
-<td><img src="https://img.shields.io/badge/YES-Path_%2B_base64_uploads-22c55e?style=flat-square&labelColor=111827" alt="Yes: path and base64 uploads" /></td>
+<td><img src="https://img.shields.io/badge/NEW-Path_%2B_base64_uploads-06b6d4?style=flat-square&labelColor=111827" alt="New: path and base64 uploads" /></td>
+<td>Both MCP tools accept <code>attachments</code> from local paths or inline base64/data URLs.</td>
 </tr>
 <tr>
-<td><b>Structured agent output</b></td>
+<td><b>Agent output</b></td>
 <td><img src="https://img.shields.io/badge/NO-Markdown_only-ef4444?style=flat-square&labelColor=111827" alt="No: markdown only" /></td>
-<td><img src="https://img.shields.io/badge/YES-JSON_%2B_structuredContent-22c55e?style=flat-square&labelColor=111827" alt="Yes: JSON and structuredContent" /></td>
+<td><img src="https://img.shields.io/badge/NEW-JSON_%2B_structuredContent-22c55e?style=flat-square&labelColor=111827" alt="New: JSON and structuredContent" /></td>
+<td><code>response_format: "json"</code> returns validated <code>structuredContent</code> for automation.</td>
 </tr>
 <tr>
-<td><b>MCP resources and prompts</b></td>
-<td><img src="https://img.shields.io/badge/NO-Tools_only-f97316?style=flat-square&labelColor=111827" alt="No: tools only" /></td>
-<td><img src="https://img.shields.io/badge/YES-Discoverable_guides_%2B_prompts-22c55e?style=flat-square&labelColor=111827" alt="Yes: discoverable guides and prompts" /></td>
+<td><b>MCP host context</b></td>
+<td><img src="https://img.shields.io/badge/BASIC-Tools_only-f97316?style=flat-square&labelColor=111827" alt="Basic: tools only" /></td>
+<td><img src="https://img.shields.io/badge/AGENT-Resources_%2B_prompts-8b5cf6?style=flat-square&labelColor=111827" alt="Agent: resources and prompts" /></td>
+<td>Hosts can discover model guidance, attachment rules, defaults, and reusable prompt templates.</td>
 </tr>
 <tr>
 <td><b>Upload safety</b></td>
 <td><img src="https://img.shields.io/badge/N%2FA-No_upload_path-64748b?style=flat-square&labelColor=111827" alt="Not applicable: no upload path" /></td>
-<td><img src="https://img.shields.io/badge/YES-Count_size_MIME_limits-22c55e?style=flat-square&labelColor=111827" alt="Yes: count, size, and MIME limits" /></td>
+<td><img src="https://img.shields.io/badge/SAFE-Count_size_MIME_limits-f97316?style=flat-square&labelColor=111827" alt="Safe: count, size, and MIME limits" /></td>
+<td>Attachment count, per-file size, total size, and MIME checks reject bad uploads early.</td>
 </tr>
 <tr>
-<td><b>Transport-level MCP tests</b></td>
+<td><b>Transport coverage</b></td>
 <td><img src="https://img.shields.io/badge/NO-Direct_tests_only-ef4444?style=flat-square&labelColor=111827" alt="No: direct tests only" /></td>
-<td><img src="https://img.shields.io/badge/YES-Real_stdio_client_test-22c55e?style=flat-square&labelColor=111827" alt="Yes: real stdio client test" /></td>
+<td><img src="https://img.shields.io/badge/TESTED-Real_stdio_client-3b82f6?style=flat-square&labelColor=111827" alt="Tested: real stdio client" /></td>
+<td>Integration tests exercise the real MCP stdio transport, not just Python function calls.</td>
 </tr>
 <tr>
-<td><b>Test coverage count</b></td>
+<td><b>Regression suite</b></td>
 <td><img src="https://img.shields.io/badge/53-tests-f59e0b?style=flat-square&labelColor=111827" alt="53 tests" /></td>
 <td><img src="https://img.shields.io/badge/82-tests-22c55e?style=flat-square&labelColor=111827" alt="82 tests" /></td>
+<td>Coverage now includes attachments, structured output, resources/prompts, and stdio behavior.</td>
 </tr>
 <tr>
-<td><b>One-command visual smoke test</b></td>
+<td><b>Live verification</b></td>
 <td><img src="https://img.shields.io/badge/NO-Manual_probe-ef4444?style=flat-square&labelColor=111827" alt="No: manual probe" /></td>
-<td><img src="https://img.shields.io/badge/YES-stdio_image_smoke_script-22c55e?style=flat-square&labelColor=111827" alt="Yes: stdio image smoke script" /></td>
+<td><img src="https://img.shields.io/badge/VERIFY-Image_smoke_script-f59e0b?style=flat-square&labelColor=111827" alt="Verify: image smoke script" /></td>
+<td>One PowerShell command verifies image upload through the real stdio MCP path.</td>
 </tr>
 <tr>
-<td><b>Codex/Cursor agent ergonomics</b></td>
-<td><img src="https://img.shields.io/badge/BASIC-Generic_tool_docs-f59e0b?style=flat-square&labelColor=111827" alt="Basic: generic tool docs" /></td>
-<td><img src="https://img.shields.io/badge/STRONG-AGENTS_playbook_%2B_examples-22c55e?style=flat-square&labelColor=111827" alt="Strong: AGENTS playbook and examples" /></td>
+<td><b>Codex/Cursor ergonomics</b></td>
+<td><img src="https://img.shields.io/badge/BASIC-Generic_docs-f59e0b?style=flat-square&labelColor=111827" alt="Basic: generic docs" /></td>
+<td><img src="https://img.shields.io/badge/CODEX-AGENTS_playbook_%2B_examples-ec4899?style=flat-square&labelColor=111827" alt="Codex: AGENTS playbook and examples" /></td>
+<td>Repo guidance teaches agents how to batch research, use visual inputs, and request JSON output.</td>
 </tr>
 <tr>
 <td><b>Frontend dependency audit</b></td>
 <td><img src="https://img.shields.io/badge/17_findings-1_critical-ef4444?style=flat-square&labelColor=111827" alt="17 findings, 1 critical" /></td>
 <td><img src="https://img.shields.io/badge/PASS-0_vulnerabilities-22c55e?style=flat-square&labelColor=111827" alt="Pass: zero vulnerabilities" /></td>
+<td>Frontend toolchain dependencies were upgraded and verified with <code>npm audit</code>.</td>
 </tr>
 <tr>
-<td><b>Public repo hygiene</b></td>
+<td><b>Public packaging</b></td>
 <td><img src="https://img.shields.io/badge/BASIC-Boilerplate_metadata-f59e0b?style=flat-square&labelColor=111827" alt="Basic: boilerplate metadata" /></td>
-<td><img src="https://img.shields.io/badge/CLEAN-Examples_CI_security_docs-22c55e?style=flat-square&labelColor=111827" alt="Clean: examples, CI, and security docs" /></td>
+<td><img src="https://img.shields.io/badge/CLEAN-Examples_CI_security_docs-64748b?style=flat-square&labelColor=111827" alt="Clean: examples, CI, and security docs" /></td>
+<td>Secrets/runtime artifacts removed; example config, CI, security policy, and contributor docs added.</td>
 </tr>
 </table>
 
-**Bottom line:** upstream is a useful Perplexity MCP base; this fork is the agent-ready version with vision uploads, structured outputs, discoverable MCP context, stronger tests, safer packaging, and a verified CI path.
+**Bottom line:** upstream is a useful Perplexity MCP base; this fork is the cleaner agent-ready version with vision uploads, structured outputs, discoverable MCP context, stronger tests, safer packaging, and green CI.
 
 ---
 
