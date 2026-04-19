@@ -45,15 +45,44 @@ Most Perplexity MCP servers are single-account wrappers around the paid Sonar AP
 
 This repository is a hardened, more host-friendly fork of [`teoobarca/perplexity-mcp`](https://github.com/teoobarca/perplexity-mcp), compared against upstream commit `ec19ac9` from `2026-02-14`.
 
-- **Image uploads now work through MCP properly** — both tools accept `attachments` using local file paths or inline base64/data URLs
-- **Structured MCP output is available** — `response_format: "json"` returns validated `structuredContent` for agents and automation
-- **Attachment handling is safer** — count limits, per-file size limits, total size limits, and MIME-type validation stop bad uploads early
-- **Hosts get more than tools** — MCP resources and prompts now expose models, defaults, attachment guidance, and better prompt templates
-- **Progress is clearer** — request lifecycle updates now distinguish validation, pool sync, dispatch, and formatting phases
-- **Real transport tests exist** — the repo now includes stdio integration coverage instead of only direct function tests
-- **Live smoke testing is one command** — image upload verification is scripted through the real stdio MCP path
-- **Codex guidance is first-class** — repo instructions teach agents how to batch research, use visual attachments, and request structured results
-- **Public packaging is cleaner** — example token config restored, secrets/logs/cache artifacts removed from the publishable tree
+<table>
+<tr>
+<td width="170"><img src="https://img.shields.io/badge/NEW-Vision_Uploads-06b6d4?style=for-the-badge&labelColor=0f172a" alt="New: Vision uploads" /></td>
+<td><b>Image uploads now work through MCP properly.</b><br />Both tools accept <code>attachments</code> using local file paths or inline base64/data URLs.</td>
+</tr>
+<tr>
+<td><img src="https://img.shields.io/badge/NEW-Structured_Output-22c55e?style=for-the-badge&labelColor=0f172a" alt="New: Structured output" /></td>
+<td><b>Structured MCP output is available.</b><br /><code>response_format: "json"</code> returns validated <code>structuredContent</code> for agents and automation.</td>
+</tr>
+<tr>
+<td><img src="https://img.shields.io/badge/SAFE-Upload_Guardrails-f97316?style=for-the-badge&labelColor=0f172a" alt="Safe: Upload guardrails" /></td>
+<td><b>Attachment handling is safer.</b><br />Count limits, per-file size limits, total size limits, and MIME-type validation stop bad uploads early.</td>
+</tr>
+<tr>
+<td><img src="https://img.shields.io/badge/AGENT-MCP_Resources-8b5cf6?style=for-the-badge&labelColor=0f172a" alt="Agent: MCP resources" /></td>
+<td><b>Hosts get more than tools.</b><br />MCP resources and prompts expose models, defaults, attachment guidance, and better prompt templates.</td>
+</tr>
+<tr>
+<td><img src="https://img.shields.io/badge/UX-Progress_Phases-14b8a6?style=for-the-badge&labelColor=0f172a" alt="UX: Progress phases" /></td>
+<td><b>Progress is clearer.</b><br />Request lifecycle updates now distinguish validation, pool sync, dispatch, and formatting phases.</td>
+</tr>
+<tr>
+<td><img src="https://img.shields.io/badge/TESTED-Real_stdio_Coverage-3b82f6?style=for-the-badge&labelColor=0f172a" alt="Tested: Real stdio coverage" /></td>
+<td><b>Real transport tests exist.</b><br />The repo includes stdio integration coverage instead of only direct function tests.</td>
+</tr>
+<tr>
+<td><img src="https://img.shields.io/badge/VERIFY-Smoke_Test-f59e0b?style=for-the-badge&labelColor=0f172a" alt="Verify: Smoke test" /></td>
+<td><b>Live smoke testing is one command.</b><br />Image upload verification is scripted through the real stdio MCP path.</td>
+</tr>
+<tr>
+<td><img src="https://img.shields.io/badge/CODEX-Agent_Ready-ec4899?style=for-the-badge&labelColor=0f172a" alt="Codex: Agent ready" /></td>
+<td><b>Codex guidance is first-class.</b><br />Repo instructions teach agents how to batch research, use visual attachments, and request structured results.</td>
+</tr>
+<tr>
+<td><img src="https://img.shields.io/badge/CLEAN-Public_Packaging-64748b?style=for-the-badge&labelColor=0f172a" alt="Clean: Public packaging" /></td>
+<td><b>Public packaging is cleaner.</b><br />Example token config restored, secrets/logs/cache artifacts removed from the publishable tree.</td>
+</tr>
+</table>
 
 ---
 
